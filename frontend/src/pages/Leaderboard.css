@@ -1,0 +1,152 @@
+.leaderboard {
+  padding: 2rem 0;
+  background: #f8f9fa;
+  min-height: calc(100vh - 80px);
+}
+
+.leaderboard .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.leaderboard h1 {
+  font-size: 2.5rem;
+  color: #333;
+  margin: 0 0 0.5rem 0;
+}
+
+.leaderboard .subtitle {
+  color: #666;
+  font-size: 1rem;
+  margin: 0 0 2rem 0;
+}
+
+.leaderboard-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 600;
+  border-bottom: 2px solid #ddd;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 120px;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #eee;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.table-row:hover {
+  background: #f9f9f9;
+}
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.rank-badge.rank-1 {
+  background: #ffd700;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+}
+
+.rank-badge.rank-2 {
+  background: #c0c0c0;
+  color: #333;
+  box-shadow: 0 2px 8px rgba(192, 192, 192, 0.3);
+}
+
+.rank-badge.rank-3 {
+  background: #cd7f32;
+  box-shadow: 0 2px 8px rgba(205, 127, 50, 0.3);
+}
+
+.rank-badge {
+  background: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.total-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #f0f0f0;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+}
+
+.table-row.rank-1 .total-badge {
+  background: #d4edda;
+  color: #155724;
+}
+
+.table-row.rank-2 .total-badge {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.table-row.rank-3 .total-badge {
+  background: #e7d4f5;
+  color: #6c3c98;
+}
+
+.col-rank,
+.col-team,
+.col-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.col-team {
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.col-team strong {
+  color: #333;
+}
+
+.loading {
+  text-align: center;
+  padding: 4rem 0;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 968px) {
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+  }
+
+  .col-rank::before { content: 'Rank: '; font-weight: 600; }
+  .col-team::before { content: 'Team: '; font-weight: 600; }
+  .col-total::before { content: 'Total Score: '; font-weight: 600; }
+}
