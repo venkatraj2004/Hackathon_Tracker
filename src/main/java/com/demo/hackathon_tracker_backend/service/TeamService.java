@@ -22,21 +22,22 @@ public class TeamService {
     @Autowired
     private RankingService rankingService;
 
-    // REGISTER TEAM USING MEMBER IDS
-    public Team registerTeam(List<Long> memberIds) {
+    // REGISTER TEAM
+    public Team registerTeam(List<Member> reqMembers) {
 
-        if (memberIds.size() < 2 || memberIds.size() > 4) {
+        if (reqMembers.size() < 2 || reqMembers.size() > 4) {
             throw new RuntimeException("Team must have minimum 2 and maximum 4 members");
         }
 
-        List<Member> members = memberRepository.findAllById(memberIds);
+        List<Long> memberIds = reqMembers.stream().map(Member::getId).toList();
+        List<Member> dbMembers = memberRepository.findAllById(memberIds);
 
-        if (members.size() != memberIds.size()) {
+        if (dbMembers.size() != reqMembers.size()) {
             throw new RuntimeException("Some members not found");
         }
 
         // Check if already assigned
-        for (Member m : members) {
+        for (Member m : dbMembers) {
             if (m.getTeam() != null) {
                 throw new RuntimeException(m.getName() + " already belongs to a team");
             }
@@ -48,14 +49,8 @@ public class TeamService {
 
         // Load the actual existing members from DB
         List<Member> existingMembers = new java.util.ArrayList<>();
-        for (Member reqMember : members) {
-            Member dbMember = memberRepository.findById(reqMember.getId())
-                    .orElseThrow(() -> new RuntimeException("Member not found with ID: " + reqMember.getId()));
-
-            // Check if already in a team
-            if (dbMember.getTeam() != null) {
-                throw new RuntimeException("Member " + dbMember.getName() + " is already in a team.");
-            }
+        for (Member reqMember : reqMembers) {
+            Member dbMember = dbMembers.stream().filter(m -> m.getId().equals(reqMember.getId())).findFirst().orElseThrow(() -> new RuntimeException("Member not found with ID: " + reqMember.getId()));
 
             // Update role if changed
             if (reqMember.getRole() != null) {
