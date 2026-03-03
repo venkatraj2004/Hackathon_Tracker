@@ -18,7 +18,6 @@ public class RankingService {
 
         List<Team> teams = teamRepository.findAll();
 
-        // Calculate totals first
         for (Team team : teams) {
 
             double sum = 0;
@@ -38,10 +37,12 @@ public class RankingService {
             }
 
             double avg = count == 0 ? 0 : sum / count;
-            team.setTotal(avg);
+
+            // ROUND TO 2 DECIMAL PLACES
+            double rounded = Math.round(avg * 100.0) / 100.0;
+            team.setTotal(rounded);
         }
 
-        // Sort by total descending
         teams.sort((a, b) -> Double.compare(b.getTotal(), a.getTotal()));
 
         int rank = 1;

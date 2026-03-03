@@ -26,7 +26,7 @@ public class Team {
     private Integer rank = 0;
 
     @JsonManagedReference
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL)
+	@OneToMany(mappedBy = "team", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Member> members;
     
  // Getters & Setters
