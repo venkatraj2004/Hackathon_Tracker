@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { teamService, marksService } from '../services/api'
+import { teamService, marksService, memberService } from '../services/api'
 import { HACKATHON_INFO } from '../constants/index.js'
 import { TeamCard } from '../components/TeamCard'
 import { MarksEditor } from '../components/MarksEditor'
@@ -8,43 +8,57 @@ import '../pages/Teams.css'
 
 export function Dashboard() {
   const [teams, setTeams] = useState([])
+  const [unassignedMembers, setUnassignedMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddTeam, setShowAddTeam] = useState(false)
 
   // Add Team Form State
   const [teamName, setTeamName] = useState('')
   const [memberCount, setMemberCount] = useState(2)
-  const [members, setMembers] = useState([{ name: '', role: '' }, { name: '', role: '' }])
+  // `memberId` will store the ID of the selected existing member.
+  const [formMembers, setFormMembers] = useState([{ memberId: '', role: '' }, { memberId: '', role: '' }])
 
   const [selectedTeamForMarks, setSelectedTeamForMarks] = useState(null)
 
   useEffect(() => {
-    fetchTeams()
+    fetchData()
   }, [])
 
-  const fetchTeams = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const data = await teamService.getAll()
+
+      const [teamsData, membersData] = await Promise.all([
+        teamService.getAll(),
+        memberService.getAll().catch(() => []) // Fallback to empty array if endpoint fails
+      ])
+
       // Sort by teamId descending for newest first
-      setTeams(data.sort((a, b) => b.teamId - a.teamId))
+      setTeams(teamsData.sort((a, b) => b.teamId - a.teamId))
+
+      // Filter out members who already have a team
+      const available = membersData.filter(m => !m.team || m.team === null)
+      setUnassignedMembers(available)
+
     } catch (error) {
-      console.error('Failed to fetch teams:', error)
+      console.error('Failed to fetch data:', error)
     } finally {
       setLoading(false)
     }
   }
 
   const handleMemberCountChange = (count) => {
-    const newCount = Math.min(Math.max(parseInt(count) || 2, 2), 4)
+    // Cannot exceed available members or max 4.
+    const maxAllowed = Math.min(4, Math.max(2, unassignedMembers.length));
+    const newCount = Math.min(Math.max(parseInt(count) || 2, 2), maxAllowed)
     setMemberCount(newCount)
 
     // Adjust members array size
-    setMembers(prev => {
+    setFormMembers(prev => {
       const newMembers = [...prev]
       if (newCount > prev.length) {
         for (let i = prev.length; i < newCount; i++) {
-          newMembers.push({ name: '', role: '' })
+          newMembers.push({ memberId: '', role: '' })
         }
       } else if (newCount < prev.length) {
         newMembers.splice(newCount)
@@ -54,42 +68,48 @@ export function Dashboard() {
   }
 
   const handleMemberChange = (index, field, value) => {
-    setMembers(prev => {
+    setFormMembers(prev => {
       const newMembers = [...prev]
       newMembers[index] = { ...newMembers[index], [field]: value }
       return newMembers
     })
   }
 
+  // Get currently selected member IDs to disable them in other dropdowns
+  const selectedMemberIds = formMembers.map(m => m.memberId).filter(Boolean)
+
   const handleAddTeam = async (e) => {
     e.preventDefault()
     try {
-      // Create team payload. Assuming teamName is passed in member for now if backend doesn't accept root teamName, 
-      // but let's try to pass the members first as expected by api List<Member>.
-      // We will inject the teamName into the first member's team mapping conceptually, 
-      // though the backend expects just members. 
-      // Let's pass the members array.
-      // We will append a "Team Name: X" role or find a way. Actually, let's just create the members and hope backend handles team generation correctly.
-      // Wait, teamName is needed. We will pass a single JSON containing teamName and members array if needed, but for now we follow the exact backend requirement or adjust appropriately.
-      // Let's pass the full payload to register. We'll send an array of objects where we might need to include { team: {teamName: ...}, name, role }
+      // Validate: ensure all slots have a selected member
+      if (formMembers.some(m => !m.memberId)) {
+        alert("Please select a member for all slots.")
+        return
+      }
 
-      const payload = members.map(m => ({
-        name: m.name,
-        role: m.role,
-        team: {
-          teamName: teamName
+      // Build payload matching List<Member> structure expected by backend
+      const payload = formMembers.map(m => {
+        // Find the original member to preserve its name, though ID should suffice usually
+        const originalMember = unassignedMembers.find(um => String(um.id) === String(m.memberId));
+        return {
+          id: m.memberId,
+          name: originalMember ? originalMember.name : "",
+          role: m.role,
+          team: {
+            teamName: teamName
+          }
         }
-      }))
+      })
 
       await teamService.register(payload)
 
-      // Refresh teams
-      await fetchTeams()
+      // Refresh data
+      await fetchData()
 
       // Reset form
       setTeamName('')
       setMemberCount(2)
-      setMembers([{ name: '', role: '' }, { name: '', role: '' }])
+      setFormMembers([{ memberId: '', role: '' }, { memberId: '', role: '' }])
       setShowAddTeam(false)
     } catch (error) {
       console.error('Failed to add team:', error)
@@ -100,7 +120,7 @@ export function Dashboard() {
   const handleSaveMarks = async (marksData) => {
     try {
       await marksService.updateMarks(marksData.teamId, marksData.sprintNo, marksData.score)
-      await fetchTeams()
+      await fetchData()
       setSelectedTeamForMarks(null)
     } catch (error) {
       console.error('Failed to save marks:', error)
@@ -129,6 +149,12 @@ export function Dashboard() {
           <form className="add-team-form" onSubmit={handleAddTeam} style={{ marginBottom: '2rem' }}>
             <h3 style={{ marginTop: 0 }}>Register New Team</h3>
 
+            {unassignedMembers.length < 2 && (
+              <div style={{ padding: '1rem', background: '#fff3cd', color: '#856404', borderRadius: '4px', marginBottom: '1rem' }}>
+                <strong>Warning:</strong> Need at least 2 unassigned members to form a team. Currently available: {unassignedMembers.length}.
+              </div>
+            )}
+
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <input
                 type="text"
@@ -137,6 +163,7 @@ export function Dashboard() {
                 onChange={(e) => setTeamName(e.target.value)}
                 required
                 style={{ flex: 1 }}
+                disabled={unassignedMembers.length < 2}
               />
 
               <input
@@ -145,24 +172,37 @@ export function Dashboard() {
                 value={memberCount}
                 onChange={(e) => handleMemberCountChange(e.target.value)}
                 min="2"
-                max="4"
+                max={Math.min(4, Math.max(2, unassignedMembers.length))}
                 required
                 style={{ width: '150px' }}
+                disabled={unassignedMembers.length < 2}
               />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
-              {members.map((member, idx) => (
+              {formMembers.map((member, idx) => (
                 <div key={idx} style={{ padding: '1rem', border: '1px solid #eee', borderRadius: '4px' }}>
                   <h4 style={{ marginTop: 0 }}>Member {idx + 1}</h4>
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    value={member.name}
-                    onChange={(e) => handleMemberChange(idx, 'name', e.target.value)}
+
+                  <select
+                    value={member.memberId}
+                    onChange={(e) => handleMemberChange(idx, 'memberId', e.target.value)}
                     required
-                    style={{ width: '100%', marginBottom: '0.5rem', boxSizing: 'border-box' }}
-                  />
+                    style={{ width: '100%', marginBottom: '0.5rem', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                    disabled={unassignedMembers.length < 2}
+                  >
+                    <option value="" disabled>Select an available member</option>
+                    {unassignedMembers.map(um => (
+                      <option
+                        key={um.id}
+                        value={um.id}
+                        disabled={selectedMemberIds.includes(String(um.id)) && member.memberId !== String(um.id)}
+                      >
+                        {um.name}
+                      </option>
+                    ))}
+                  </select>
+
                   <input
                     type="text"
                     placeholder="Role (e.g. Developer, Designer)"
@@ -170,13 +210,20 @@ export function Dashboard() {
                     onChange={(e) => handleMemberChange(idx, 'role', e.target.value)}
                     required
                     style={{ width: '100%', boxSizing: 'border-box' }}
+                    disabled={unassignedMembers.length < 2}
                   />
                 </div>
               ))}
             </div>
 
             <div className="form-actions" style={{ marginTop: '1.5rem' }}>
-              <button type="submit" className="btn btn-success">Create Team</button>
+              <button
+                type="submit"
+                className="btn btn-success"
+                disabled={unassignedMembers.length < 2}
+              >
+                Create Team
+              </button>
               <button type="button" className="btn btn-secondary" onClick={() => setShowAddTeam(false)}>Cancel</button>
             </div>
           </form>

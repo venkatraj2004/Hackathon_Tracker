@@ -32,6 +32,10 @@ export const apiCall = async (endpoint, options = {}) => {
   }
 }
 
+export const memberService = {
+  getAll: () => apiCall('/members')
+}
+
 export const teamService = {
   getAll: () => apiCall('/teams'),
   register: (members) => apiCall('/teams/register', {

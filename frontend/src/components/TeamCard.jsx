@@ -34,7 +34,7 @@ export function TeamCard({ team, onMarks }) {
         </div>
         <div className="info-item" style={{ borderTop: '1px solid #eee', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
           <span className="label" style={{ color: '#333' }}>Total Score:</span>
-          <span className="value"><strong>{team.total ?? 0}/300</strong></span>
+          <span className="value"><strong>{team.total ?? 0}/100</strong></span>
         </div>
       </div>
       <div className="team-actions">
