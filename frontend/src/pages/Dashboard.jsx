@@ -13,10 +13,9 @@ export function Dashboard() {
   const [showAddTeam, setShowAddTeam] = useState(false)
 
   // Add Team Form State
-  const [teamName, setTeamName] = useState('')
   const [memberCount, setMemberCount] = useState(2)
   // `memberId` will store the ID of the selected existing member.
-  const [formMembers, setFormMembers] = useState([{ memberId: '', role: '' }, { memberId: '', role: '' }])
+  const [formMembers, setFormMembers] = useState([{ memberId: '' }, { memberId: '' }])
 
   const [selectedTeamForMarks, setSelectedTeamForMarks] = useState(null)
 
@@ -37,7 +36,16 @@ export function Dashboard() {
       setTeams(teamsData.sort((a, b) => b.teamId - a.teamId))
 
       // Filter out members who already have a team
-      const available = membersData.filter(m => !m.team || m.team === null)
+      // Because the backend /members API doesn't include the team reference,
+      // we check if the member ID exists in any team's member list.
+      const assignedMemberIds = new Set()
+      teamsData.forEach(team => {
+        if (team.members) {
+          team.members.forEach(m => assignedMemberIds.add(String(m.id || m.memberId)))
+        }
+      })
+
+      const available = membersData.filter(m => !assignedMemberIds.has(String(m.id)))
       setUnassignedMembers(available)
 
     } catch (error) {
@@ -58,7 +66,7 @@ export function Dashboard() {
       const newMembers = [...prev]
       if (newCount > prev.length) {
         for (let i = prev.length; i < newCount; i++) {
-          newMembers.push({ memberId: '', role: '' })
+          newMembers.push({ memberId: '' })
         }
       } else if (newCount < prev.length) {
         newMembers.splice(newCount)
@@ -67,10 +75,10 @@ export function Dashboard() {
     })
   }
 
-  const handleMemberChange = (index, field, value) => {
+  const handleMemberChange = (index, value) => {
     setFormMembers(prev => {
       const newMembers = [...prev]
-      newMembers[index] = { ...newMembers[index], [field]: value }
+      newMembers[index] = { memberId: value }
       return newMembers
     })
   }
@@ -87,19 +95,8 @@ export function Dashboard() {
         return
       }
 
-      // Build payload matching List<Member> structure expected by backend
-      const payload = formMembers.map(m => {
-        // Find the original member to preserve its name, though ID should suffice usually
-        const originalMember = unassignedMembers.find(um => String(um.id) === String(m.memberId));
-        return {
-          id: m.memberId,
-          name: originalMember ? originalMember.name : "",
-          role: m.role,
-          team: {
-            teamName: teamName
-          }
-        }
-      })
+      // Build payload matching List<Long> structure expected by backend
+      const payload = formMembers.map(m => parseInt(m.memberId))
 
       await teamService.register(payload)
 
@@ -107,9 +104,8 @@ export function Dashboard() {
       await fetchData()
 
       // Reset form
-      setTeamName('')
       setMemberCount(2)
-      setFormMembers([{ memberId: '', role: '' }, { memberId: '', role: '' }])
+      setFormMembers([{ memberId: '' }, { memberId: '' }])
       setShowAddTeam(false)
     } catch (error) {
       console.error('Failed to add team:', error)
@@ -157,16 +153,6 @@ export function Dashboard() {
 
             <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
               <input
-                type="text"
-                placeholder="Team Name"
-                value={teamName}
-                onChange={(e) => setTeamName(e.target.value)}
-                required
-                style={{ flex: 1 }}
-                disabled={unassignedMembers.length < 2}
-              />
-
-              <input
                 type="number"
                 placeholder="Members (2-4)"
                 value={memberCount}
@@ -186,7 +172,7 @@ export function Dashboard() {
 
                   <select
                     value={member.memberId}
-                    onChange={(e) => handleMemberChange(idx, 'memberId', e.target.value)}
+                    onChange={(e) => handleMemberChange(idx, e.target.value)}
                     required
                     style={{ width: '100%', marginBottom: '0.5rem', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
                     disabled={unassignedMembers.length < 2}
@@ -202,16 +188,6 @@ export function Dashboard() {
                       </option>
                     ))}
                   </select>
-
-                  <input
-                    type="text"
-                    placeholder="Role (e.g. Developer, Designer)"
-                    value={member.role}
-                    onChange={(e) => handleMemberChange(idx, 'role', e.target.value)}
-                    required
-                    style={{ width: '100%', boxSizing: 'border-box' }}
-                    disabled={unassignedMembers.length < 2}
-                  />
                 </div>
               ))}
             </div>
