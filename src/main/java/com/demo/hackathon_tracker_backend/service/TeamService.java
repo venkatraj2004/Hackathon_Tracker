@@ -21,13 +21,6 @@ public class TeamService {
 
     @Autowired
     private RankingService rankingService;
-<<<<<<< HEAD
-    @Autowired
-    private com.demo.hackathon_tracker_backend.repository.MemberRepository memberRepository;
-
-    public Team registerTeam(List<Member> members) {
-=======
->>>>>>> 8cbabd76a16943749cd4ad0b3e69a36e10f48ead
 
     // REGISTER TEAM USING MEMBER IDS
     public Team registerTeam(List<Long> memberIds) {
@@ -81,14 +74,11 @@ public class TeamService {
         return teamRepository.findAll();
     }
 
-<<<<<<< HEAD
-=======
     // AVAILABLE MEMBERS FOR DROPDOWN
     public List<Member> getAvailableMembers() {
         return memberRepository.findByTeamIsNull();
     }
 
->>>>>>> 8cbabd76a16943749cd4ad0b3e69a36e10f48ead
     public void submitSprintMarks(Long teamId, int sprintNo, Double marks) {
 
         Team team = teamRepository.findById(teamId)

@@ -61,11 +61,6 @@
 
     <build>
         <plugins>
-
-<<<<<<< HEAD
-=======
-            
->>>>>>> 8cbabd76a16943749cd4ad0b3e69a36e10f48ead
             <!-- Spring Boot Plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
