@@ -14,8 +14,8 @@ export function Dashboard() {
 
   // Add Team Form State
   const [memberCount, setMemberCount] = useState(2)
-  // `memberId` will store the ID of the selected existing member.
-  const [formMembers, setFormMembers] = useState([{ memberId: '' }, { memberId: '' }])
+  // `memberId` will store the ID of the selected existing member, `role` will store their role in the team.
+  const [formMembers, setFormMembers] = useState([{ memberId: '', role: '' }, { memberId: '', role: '' }])
 
   const [selectedTeamForMarks, setSelectedTeamForMarks] = useState(null)
 
@@ -66,7 +66,7 @@ export function Dashboard() {
       const newMembers = [...prev]
       if (newCount > prev.length) {
         for (let i = prev.length; i < newCount; i++) {
-          newMembers.push({ memberId: '' })
+          newMembers.push({ memberId: '', role: '' })
         }
       } else if (newCount < prev.length) {
         newMembers.splice(newCount)
@@ -75,10 +75,10 @@ export function Dashboard() {
     })
   }
 
-  const handleMemberChange = (index, value) => {
+  const handleMemberChange = (index, field, value) => {
     setFormMembers(prev => {
       const newMembers = [...prev]
-      newMembers[index] = { memberId: value }
+      newMembers[index] = { ...newMembers[index], [field]: value }
       return newMembers
     })
   }
@@ -89,14 +89,17 @@ export function Dashboard() {
   const handleAddTeam = async (e) => {
     e.preventDefault()
     try {
-      // Validate: ensure all slots have a selected member
-      if (formMembers.some(m => !m.memberId)) {
-        alert("Please select a member for all slots.")
+      // Validate: ensure all slots have a selected member and a role
+      if (formMembers.some(m => !m.memberId || !m.role.trim())) {
+        alert("Please select a member and enter a role for all slots.")
         return
       }
 
-      // Build payload matching List<Long> structure expected by backend
-      const payload = formMembers.map(m => parseInt(m.memberId))
+      // Build payload structure
+      const payload = formMembers.map(m => ({
+        memberId: parseInt(m.memberId),
+        role: m.role.trim()
+      }))
 
       await teamService.register(payload)
 
@@ -105,7 +108,7 @@ export function Dashboard() {
 
       // Reset form
       setMemberCount(2)
-      setFormMembers([{ memberId: '' }, { memberId: '' }])
+      setFormMembers([{ memberId: '', role: '' }, { memberId: '', role: '' }])
       setShowAddTeam(false)
     } catch (error) {
       console.error('Failed to add team:', error)
@@ -172,7 +175,7 @@ export function Dashboard() {
 
                   <select
                     value={member.memberId}
-                    onChange={(e) => handleMemberChange(idx, e.target.value)}
+                    onChange={(e) => handleMemberChange(idx, 'memberId', e.target.value)}
                     required
                     style={{ width: '100%', marginBottom: '0.5rem', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
                     disabled={unassignedMembers.length < 2}
@@ -188,6 +191,16 @@ export function Dashboard() {
                       </option>
                     ))}
                   </select>
+
+                  <input
+                    type="text"
+                    placeholder="Role (e.g., Developer, Designer)"
+                    value={member.role}
+                    onChange={(e) => handleMemberChange(idx, 'role', e.target.value)}
+                    required
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid #ddd', borderRadius: '4px' }}
+                    disabled={unassignedMembers.length < 2}
+                  />
                 </div>
               ))}
             </div>

@@ -13,13 +13,19 @@ export function MarksEditor({ team, onSave, onCancel }) {
     else setScore(0)
   }, [sprintNo, team])
 
+  const isSubmitted = (sprintNo === 1 && team.sprint1 !== null && team.sprint1 !== undefined) ||
+    (sprintNo === 2 && team.sprint2 !== null && team.sprint2 !== undefined) ||
+    (sprintNo === 3 && team.sprint3 !== null && team.sprint3 !== undefined);
+
   const handleScoreChange = (value) => {
-    const numValue = Math.min(Math.max(parseInt(value) || 0, 0), 100)
-    setScore(numValue)
+    if (isSubmitted) return;
+    const numValue = Math.min(Math.max(parseInt(value) || 0, 0), 100);
+    setScore(numValue);
   }
 
   const handleSave = () => {
-    onSave({ teamId: team.teamId, sprintNo, score })
+    if (isSubmitted) return;
+    onSave({ teamId: team.teamId, sprintNo, score });
   }
 
   return (
@@ -51,9 +57,15 @@ export function MarksEditor({ team, onSave, onCancel }) {
                 value={score}
                 onChange={(e) => handleScoreChange(e.target.value)}
                 className="mark-input"
+                disabled={isSubmitted}
               />
               <span className="mark-max">/ 100</span>
             </div>
+            {isSubmitted && (
+              <div style={{ color: 'red', fontSize: '0.85rem', marginTop: '0.5rem' }}>
+                Score already submitted for this sprint and cannot be changed.
+              </div>
+            )}
           </div>
         </div>
 
@@ -65,7 +77,7 @@ export function MarksEditor({ team, onSave, onCancel }) {
         </div>
 
         <div className="marks-actions">
-          <button className="btn btn-success" onClick={handleSave}>
+          <button className="btn btn-success" onClick={handleSave} disabled={isSubmitted} style={isSubmitted ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
             💾 Save Marks
           </button>
           <button className="btn btn-secondary" onClick={onCancel}>
