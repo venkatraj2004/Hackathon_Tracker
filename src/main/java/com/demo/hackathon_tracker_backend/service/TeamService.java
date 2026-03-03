@@ -43,7 +43,8 @@ public class TeamService {
         }
 
         Team team = new Team();
-        team.setTeamName("Team_" + System.currentTimeMillis());
+        long count = teamRepository.count() + 1;
+        team.setTeamName("team" + count);
 
         // Load the actual existing members from DB
         List<Member> existingMembers = new java.util.ArrayList<>();
