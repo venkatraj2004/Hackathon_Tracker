@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Header } from './components/Header'
 import { Dashboard } from './pages/Dashboard'
-import { Teams } from './pages/Teams'
 import { Leaderboard } from './pages/Leaderboard'
 import './App.css'
 
@@ -27,8 +26,6 @@ function App() {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'teams':
-        return <Teams />
       case 'leaderboard':
         return <Leaderboard />
       case 'dashboard':

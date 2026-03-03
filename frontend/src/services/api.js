@@ -12,13 +12,21 @@ export const apiCall = async (endpoint, options = {}) => {
 
   try {
     const response = await fetch(url, config)
-    
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.statusText}`)
+      // Backend returns plain string sometimes instead of JSON
+      const text = await response.text()
+      throw new Error(text || `API Error: ${response.statusText}`)
     }
 
-    return await response.json()
-  } catch (error) { 
+    // Attempt to parse JSON, if it fails, return the raw text
+    const text = await response.text()
+    try {
+      return text ? JSON.parse(text) : {}
+    } catch {
+      return text
+    }
+  } catch (error) {
     console.error('API Call failed:', error)
     throw error
   }
@@ -26,45 +34,16 @@ export const apiCall = async (endpoint, options = {}) => {
 
 export const teamService = {
   getAll: () => apiCall('/teams'),
-  getById: (id) => apiCall(`/teams/${id}`),
-  create: (data) => apiCall('/teams', {
+  register: (members) => apiCall('/teams/register', {
     method: 'POST',
-    body: JSON.stringify(data)
+    body: JSON.stringify(members)
   }),
-  update: (id, data) => apiCall(`/teams/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(data)
-  }),
-  delete: (id) => apiCall(`/teams/${id}`, {
-    method: 'DELETE'
-  }),
-  addMember: (teamId, memberId) => apiCall(`/teams/${teamId}/members`, {
-    method: 'POST',
-    body: JSON.stringify({ memberId })
-  }),
-  removeMember: (teamId, memberId) => apiCall(`/teams/${teamId}/members/${memberId}`, {
-    method: 'DELETE'
-  })
+  getLeaderboard: () => apiCall('/teams/leaderboard')
 }
 
 export const marksService = {
-  getMarksByTeam: (teamId) => apiCall(`/marks?teamId=${teamId}`),
-  getAll: () => apiCall('/marks'),
-  updateMarks: (teamId, score) => apiCall(`/marks`, {
+  updateMarks: (teamId, sprintNo, marks) => apiCall(`/teams/${teamId}/sprints/${sprintNo}`, {
     method: 'POST',
-    body: JSON.stringify({ teamId, score })
-  }),
-  getLeaderboard: () => apiCall('/marks/leaderboard')
-}
-
-export const submissionService = {
-  getByTeam: (teamId) => apiCall(`/submissions?teamId=${teamId}`),
-  submit: (teamId, data) => apiCall(`/submissions`, {
-    method: 'POST',
-    body: JSON.stringify({ teamId, ...data })
-  }),
-  update: (submissionId, data) => apiCall(`/submissions/${submissionId}`, {
-    method: 'PUT',
-    body: JSON.stringify(data)
+    body: JSON.stringify({ marks })
   })
 }

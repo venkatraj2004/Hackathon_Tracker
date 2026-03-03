@@ -9,7 +9,6 @@ export function Header() {
         <nav className="navbar">
           <ul>
             <li><a href="#dashboard">Dashboard</a></li>
-            <li><a href="#teams">Teams</a></li>
             <li><a href="#leaderboard">Leaderboard</a></li>
           </ul>
         </nav>

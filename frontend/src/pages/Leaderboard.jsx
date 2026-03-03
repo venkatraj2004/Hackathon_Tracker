@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { marksService } from '../services/api'
+import { teamService } from '../services/api'
 import './Leaderboard.css'
 
 export function Leaderboard() {
@@ -13,7 +13,7 @@ export function Leaderboard() {
   const fetchLeaderboard = async () => {
     try {
       setLoading(true)
-      const data = await marksService.getLeaderboard()
+      const data = await teamService.getLeaderboard()
       setLeaderboard(data)
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error)
@@ -40,15 +40,15 @@ export function Leaderboard() {
           </div>
 
           {leaderboard.map((team, index) => (
-            <div key={team.rank} className={`table-row rank-${index + 1}`}>
+            <div key={team.teamId} className={`table-row rank-${index + 1}`}>
               <div className="col-rank">
-                <span className="rank-badge">{team.rank}</span>
+                <span className="rank-badge">{team.rank || index + 1}</span>
               </div>
               <div className="col-team">
-                <strong>{team.name}</strong>
+                <strong>{team.teamName}</strong>
               </div>
               <div className="col-total">
-                <span className="total-badge">{team.score}</span>
+                <span className="total-badge">{team.total ?? 0}</span>
               </div>
             </div>
           ))}

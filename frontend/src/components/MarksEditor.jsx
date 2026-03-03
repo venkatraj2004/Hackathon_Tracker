@@ -1,9 +1,17 @@
 import React, { useState } from 'react'
-import { MARKS_CRITERIA } from '../constants/index.js'
 import './MarksEditor.css'
 
 export function MarksEditor({ team, onSave, onCancel }) {
-  const [score, setScore] = useState(team.score || 0)
+  const [sprintNo, setSprintNo] = useState(1)
+  const [score, setScore] = useState(0)
+
+  // Pre-fill score based on selected sprint if it already exists
+  React.useEffect(() => {
+    if (sprintNo === 1 && team.sprint1) setScore(team.sprint1)
+    else if (sprintNo === 2 && team.sprint2) setScore(team.sprint2)
+    else if (sprintNo === 3 && team.sprint3) setScore(team.sprint3)
+    else setScore(0)
+  }, [sprintNo, team])
 
   const handleScoreChange = (value) => {
     const numValue = Math.min(Math.max(parseInt(value) || 0, 0), 100)
@@ -11,17 +19,30 @@ export function MarksEditor({ team, onSave, onCancel }) {
   }
 
   const handleSave = () => {
-    onSave({ teamId: team.id, score })
+    onSave({ teamId: team.teamId, sprintNo, score })
   }
 
   return (
     <div className="marks-editor">
       <div className="marks-container">
-        <h2>🎯 Mark Team: {team.name}</h2>
-        
+        <h2>🎯 Mark Team: {team.teamName}</h2>
+
         <div className="marks-form">
           <div className="mark-item">
-            <label>{MARKS_CRITERIA.TOTAL.name}</label>
+            <label>Sprint Number</label>
+            <select
+              value={sprintNo}
+              onChange={(e) => setSprintNo(parseInt(e.target.value))}
+              className="mark-input"
+            >
+              <option value={1}>Sprint 1</option>
+              <option value={2}>Sprint 2</option>
+              <option value={3}>Sprint 3</option>
+            </select>
+          </div>
+
+          <div className="mark-item">
+            <label>Score for Sprint {sprintNo}</label>
             <div className="mark-input-group">
               <input
                 type="number"
@@ -37,7 +58,7 @@ export function MarksEditor({ team, onSave, onCancel }) {
         </div>
 
         <div className="score-display">
-          <span>Final Score:</span>
+          <span>Sprint {sprintNo} Score:</span>
           <span className={`score ${score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low'}`}>
             {score} / 100
           </span>
