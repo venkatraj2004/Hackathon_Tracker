@@ -16,6 +16,9 @@ public class TeamService {
     private TeamRepository teamRepository;
     @Autowired
     private RankingService rankingService;
+    @Autowired
+    private com.demo.hackathon_tracker_backend.repository.MemberRepository memberRepository;
+
     public Team registerTeam(List<Member> members) {
 
         if (members.size() < 2 || members.size() > 4) {
@@ -27,11 +30,27 @@ public class TeamService {
         long count = teamRepository.count() + 1;
         team.setTeamName("team" + count);
 
-        for (Member m : members) {
-            m.setTeam(team);
+        // Load the actual existing members from DB
+        List<Member> existingMembers = new java.util.ArrayList<>();
+        for (Member reqMember : members) {
+            Member dbMember = memberRepository.findById(reqMember.getId())
+                    .orElseThrow(() -> new RuntimeException("Member not found with ID: " + reqMember.getId()));
+
+            // Check if already in a team
+            if (dbMember.getTeam() != null) {
+                throw new RuntimeException("Member " + dbMember.getName() + " is already in a team.");
+            }
+
+            // Update role if changed
+            if (reqMember.getRole() != null) {
+                dbMember.setRole(reqMember.getRole());
+            }
+
+            dbMember.setTeam(team);
+            existingMembers.add(dbMember);
         }
 
-        team.setMembers(members);
+        team.setMembers(existingMembers);
 
         return teamRepository.save(team);
     }
@@ -39,6 +58,7 @@ public class TeamService {
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
     }
+
     public void submitSprintMarks(Long teamId, int sprintNo, Double marks) {
 
         Team team = teamRepository.findById(teamId)
