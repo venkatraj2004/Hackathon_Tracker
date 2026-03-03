@@ -18,8 +18,8 @@ public class TeamController {
     private TeamService teamService;
 
     @PostMapping("/register")
-    public Team registerTeam(@RequestBody List<Member> members) {
-        return teamService.registerTeam(members);
+    public Team registerTeam(@RequestBody List<Long> membersIds) {
+        return teamService.registerTeam(membersIds);
     }
 
     @GetMapping

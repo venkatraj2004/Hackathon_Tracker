@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.demo.hackathon_tracker_backend.entity.Member;
 import com.demo.hackathon_tracker_backend.entity.Team;
+import com.demo.hackathon_tracker_backend.repository.MemberRepository;
 import com.demo.hackathon_tracker_backend.repository.TeamRepository;
 
 @Service
@@ -14,21 +15,42 @@ public class TeamService {
 
     @Autowired
     private TeamRepository teamRepository;
+
+    @Autowired
+    private MemberRepository memberRepository;
+
     @Autowired
     private RankingService rankingService;
+<<<<<<< HEAD
     @Autowired
     private com.demo.hackathon_tracker_backend.repository.MemberRepository memberRepository;
 
     public Team registerTeam(List<Member> members) {
+=======
+>>>>>>> 8cbabd76a16943749cd4ad0b3e69a36e10f48ead
 
-        if (members.size() < 2 || members.size() > 4) {
+    // REGISTER TEAM USING MEMBER IDS
+    public Team registerTeam(List<Long> memberIds) {
+
+        if (memberIds.size() < 2 || memberIds.size() > 4) {
             throw new RuntimeException("Team must have minimum 2 and maximum 4 members");
         }
 
-        Team team = new Team();
+        List<Member> members = memberRepository.findAllById(memberIds);
 
-        long count = teamRepository.count() + 1;
-        team.setTeamName("team" + count);
+        if (members.size() != memberIds.size()) {
+            throw new RuntimeException("Some members not found");
+        }
+
+        // Check if already assigned
+        for (Member m : members) {
+            if (m.getTeam() != null) {
+                throw new RuntimeException(m.getName() + " already belongs to a team");
+            }
+        }
+
+        Team team = new Team();
+        team.setTeamName("Team_" + System.currentTimeMillis());
 
         // Load the actual existing members from DB
         List<Member> existingMembers = new java.util.ArrayList<>();
@@ -59,6 +81,14 @@ public class TeamService {
         return teamRepository.findAll();
     }
 
+<<<<<<< HEAD
+=======
+    // AVAILABLE MEMBERS FOR DROPDOWN
+    public List<Member> getAvailableMembers() {
+        return memberRepository.findByTeamIsNull();
+    }
+
+>>>>>>> 8cbabd76a16943749cd4ad0b3e69a36e10f48ead
     public void submitSprintMarks(Long teamId, int sprintNo, Double marks) {
 
         Team team = teamRepository.findById(teamId)
@@ -89,8 +119,6 @@ public class TeamService {
         }
 
         teamRepository.save(team);
-
-        // After saving sprint → recalculate totals & ranks
         rankingService.updateRanks();
     }
 }
