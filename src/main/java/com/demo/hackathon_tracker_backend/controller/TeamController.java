@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import com.demo.hackathon_tracker_backend.entity.Team;
+import com.demo.hackathon_tracker_backend.entity.Member;
 import com.demo.hackathon_tracker_backend.service.TeamService;
 import com.demo.hackathon_tracker_backend.dto.MarkRequest;
 
