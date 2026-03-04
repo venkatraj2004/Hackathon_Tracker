@@ -1,0 +1,11 @@
+com\demo\hackathon_tracker_backend\repository\TeamRepository.class
+com\demo\hackathon_tracker_backend\HackathonTrackerBackendApplication.class
+com\demo\hackathon_tracker_backend\controller\MemberController.class
+com\demo\hackathon_tracker_backend\entity\Member.class
+com\demo\hackathon_tracker_backend\repository\MemberRepository.class
+com\demo\hackathon_tracker_backend\controller\TeamController.class
+com\demo\hackathon_tracker_backend\exception\GlobalExceptionHandler.class
+com\demo\hackathon_tracker_backend\entity\Team.class
+com\demo\hackathon_tracker_backend\service\TeamService.class
+com\demo\hackathon_tracker_backend\dto\MarkRequest.class
+com\demo\hackathon_tracker_backend\service\RankingService.class

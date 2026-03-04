@@ -97,7 +97,7 @@ export function Dashboard() {
 
       // Build payload structure
       const payload = formMembers.map(m => ({
-        memberId: parseInt(m.memberId),
+        id: parseInt(m.memberId),
         role: m.role.trim()
       }))
 
