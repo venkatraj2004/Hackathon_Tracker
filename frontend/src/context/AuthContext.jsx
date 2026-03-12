@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { apiCall } from '../services/api';
 
 const AuthContext = createContext();
@@ -10,14 +10,44 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('tokenExpiry');
+  }, []);
+
   useEffect(() => {
     if (token) {
-      setUser({ token });
+      const storedExpiry = localStorage.getItem('tokenExpiry');
+      let timeRemaining = null;
+      
+      if (storedExpiry) {
+        timeRemaining = parseInt(storedExpiry, 10) - Date.now();
+      }
+
+      // If token is already expired based on 20 min tracker, clean up and logout
+      if (timeRemaining !== null && timeRemaining <= 0) {
+        logout();
+      } else {
+        setUser({ token });
+        
+        // Setup timeout to auto-logout exactly 20 mins from login
+        const timeoutMs = timeRemaining > 0 ? timeRemaining : 20 * 60 * 1000;
+        const timeoutId = setTimeout(() => {
+          logout();
+          // Optional: we can alert or simply let the app silently route them to login
+          window.location.reload(); // Quick UX reset to flush state and navigate to login
+        }, timeoutMs);
+        
+        setLoading(false);
+        return () => clearTimeout(timeoutId);
+      }
     } else {
       setUser(null);
     }
     setLoading(false);
-  }, [token]);
+  }, [token, logout]);
 
   const login = async (username, password) => {
     try {
@@ -36,20 +66,19 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       const jwtToken = data.token;
 
-      setToken(jwtToken);
+      // Expire exactly 20 mins from login
+      const expiryTime = Date.now() + 20 * 60 * 1000;
+
       localStorage.setItem('token', jwtToken);
+      localStorage.setItem('tokenExpiry', expiryTime.toString());
+      setToken(jwtToken);
       setUser({ token: jwtToken });
+      
       return true;
     } catch (error) {
       console.error('Login error:', error);
       throw error;
     }
-  };
-
-  const logout = () => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem('token');
   };
 
   const value = {
