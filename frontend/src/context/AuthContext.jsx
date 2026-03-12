@@ -12,9 +12,6 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      // In a real app, you might validate the token with the backend here
-      // or extract user info from the JWT payload.
-      // For now, we'll just set a dummy user object if the token exists.
       setUser({ token });
     } else {
       setUser(null);
