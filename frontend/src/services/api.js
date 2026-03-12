@@ -2,9 +2,14 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
 
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`
+
+  // Grab the token securely from local storage
+  const token = localStorage.getItem('token');
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
       ...options.headers
     },
     ...options
