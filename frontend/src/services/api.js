@@ -1,4 +1,5 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api'
+// We use a relative path so the Vite proxy catches '/api' requests
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`

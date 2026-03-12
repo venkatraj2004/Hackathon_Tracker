@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8081/api'}/auth/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/authenticate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,10 +35,9 @@ export const AuthProvider = ({ children }) => {
       if (!response.ok) {
         throw new Error('Login failed');
       }
-      
-      const data = await response.text();
-      // Assume the backend returns a bare JWT token string based on JwtFilter
-      const jwtToken = data; 
+
+      const data = await response.json();
+      const jwtToken = data.jwt;
 
       setToken(jwtToken);
       localStorage.setItem('token', jwtToken);
