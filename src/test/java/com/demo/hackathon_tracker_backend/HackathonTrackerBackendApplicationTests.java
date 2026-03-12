@@ -10,4 +10,10 @@ class HackathonTrackerBackendApplicationTests {
 	void contextLoads() {
 	}
 
+	// simple authentication endpoint test
+	@Test
+	void authenticateWithValidUser() throws Exception {
+		// Add actual test implementation later if needed
+	}
+
 }
