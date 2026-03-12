@@ -37,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = await response.json();
-      const jwtToken = data.jwt;
+      const jwtToken = data.token;
 
       setToken(jwtToken);
       localStorage.setItem('token', jwtToken);
